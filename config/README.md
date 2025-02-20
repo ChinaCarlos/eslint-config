@@ -269,11 +269,289 @@ const _privateVariable = 'private';
 
 ### typescript.js
 
-TypeScript 专用的代码规范配置，特点：
-- 继承 `javascript.js` 的基础配置
-- 集成 `@typescript-eslint` 的推荐规则
-- 强制类型注解和接口定义规范
-- 自定义的 TypeScript 特定规则
+TypeScript 专用的代码规范配置，继承自 javascript.js 的基础配置。
+
+#### ERROR 级别规则
+
+| 分类 | 规则 | 说明 |
+|------|------|------|
+| **类型安全** | `no-unsafe-assignment` | 允许不安全的赋值操作 |
+| | `no-unsafe-member-access` | 允许访问 any 类型的属性 |
+| | `no-unsafe-call` | 允许调用 any 类型的函数 |
+| | `no-unsafe-return` | 允许返回 any 类型的值 |
+| | `restrict-template-expressions` | 模板字符串表达式必须类型正确 |
+| | `no-floating-promises` | 允许不处理 Promise 的返回值 |
+| | `await-thenable` | 允许 await 非 Promise 值 |
+| | `no-unnecessary-type-assertion` | 禁止不必要的类型断言 |
+| | `no-unnecessary-condition` | 禁止不必要的条件判断 |
+| | `no-unnecessary-boolean-literal-compare` | 禁止不必要的布尔值比较 |
+| | `switch-exhaustiveness-check` | switch 语句必须处理所有可能的枚举值 |
+| | `no-empty-interface` | 禁止空接口定义 |
+| **代码质量** | `no-unused-vars` | 禁止未使用的变量 |
+| | `no-shadow` | 禁止变量名称遮蔽 |
+| | `no-throw-literal` | 只允许抛出 Error 对象 |
+| | `no-misused-promises` | 防止错误使用 Promise |
+| | `no-non-null-assertion` | 禁止使用非空断言操作符 |
+| | `no-base-to-string` | 禁止隐式的 toString 调用 |
+| | `no-dynamic-delete` | 禁止动态删除对象属性 |
+| | `no-require-imports` | 禁止使用 require 导入 |
+| | `prefer-optional-chain` | 优先使用可选链操作符 |
+| | `prefer-nullish-coalescing` | 优先使用空值合并操作符 |
+| | `no-invalid-void-type` | 禁止无效的 void 类型使用 |
+| **代码风格** | `consistent-type-imports` | 统一使用 import type 导入类型 |
+| | `consistent-type-definitions` | 统一使用 interface 定义类型 |
+| | `member-delimiter-style` | 接口成员分隔符样式 |
+| | `method-signature-style` | 方法签名风格 |
+
+#### WARNING 级别规则
+
+| 分类 | 规则 | 说明 |
+|------|------|------|
+| **命名规范** | `naming-convention` | 强制使用一致的命名规范（接口、类型、枚举等） |
+| **类型使用** | `ban-types` | 禁止使用特定类型（如 Object、Function） |
+| | `no-explicit-any` | 警告使用 any 类型 |
+| **最佳实践** | `explicit-member-accessibility` | 要求明确的成员可访问性 |
+| | `prefer-ts-expect-error` | 优先使用 @ts-expect-error 而不是 @ts-ignore |
+| | `prefer-enum-initializers` | 枚举成员应该有初始值 |
+| | `prefer-literal-enum-member` | 枚举成员应该是字面量 |
+| | `prefer-reduce-type-parameter` | 优先使用类型参数而不是类型断言 |
+| | `unified-signatures` | 合并具有相同实现的重载声明 |
+
+#### OFF 级别规则
+
+| 规则 | 说明 |
+|------|------|
+| `explicit-function-return-type` | 不强制要求函数返回类型注解 |
+| `no-use-before-define` | 允许在定义前使用变量 |
+| `no-namespace` | 允许使用命名空间 |
+| `no-inferrable-types` | 允许推断类型的显式类型声明 |
+| `unbound-method` | 允许方法在没有 this 约束的情况下使用 |
+
+#### 规则示例
+
+**类型安全**
+
+1. `restrict-template-expressions`: 模板字符串表达式必须类型正确
+```typescript
+// ❌ 错误
+const obj = {};
+const msg = `value: ${obj}`;
+
+// ✅ 正确
+const str = 'hello';
+const msg = `value: ${str}`;
+```
+
+2. `no-unnecessary-type-assertion`: 禁止不必要的类型断言
+```typescript
+// ❌ 错误
+const str: string = 'hello';
+const length = (str as string).length;
+
+// ✅ 正确
+const str: string = 'hello';
+const length = str.length;
+```
+
+3. `no-unnecessary-condition`: 禁止不必要的条件判断
+```typescript
+// ❌ 错误
+const str = 'hello';
+if (str) {
+  console.log('str exists');
+}
+
+// ✅ 正确
+const str: string | undefined = getMaybeString();
+if (str) {
+  console.log('str exists');
+}
+```
+
+4. `switch-exhaustiveness-check`: switch 语句必须处理所有可能的枚举值
+```typescript
+enum Status {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE',
+  Pending = 'PENDING'
+}
+
+// ❌ 错误
+function handleStatus(status: Status) {
+  switch (status) {
+    case Status.Active:
+      return 'Active';
+    case Status.Inactive:
+      return 'Inactive';
+  }
+}
+
+// ✅ 正确
+function handleStatus(status: Status) {
+  switch (status) {
+    case Status.Active:
+      return 'Active';
+    case Status.Inactive:
+      return 'Inactive';
+    case Status.Pending:
+      return 'Pending';
+  }
+}
+```
+
+**代码质量**
+
+1. `no-non-null-assertion`: 禁止使用非空断言操作符
+```typescript
+// ❌ 错误
+interface User {
+  name?: string;
+}
+const user: User = {};
+const name = user.name!;
+
+// ✅ 正确
+const name = user.name ?? 'default';
+```
+
+2. `prefer-optional-chain`: 优先使用可选链操作符
+```typescript
+// ❌ 错误
+const value = obj && obj.foo && obj.foo.bar;
+
+// ✅ 正确
+const value = obj?.foo?.bar;
+```
+
+3. `no-base-to-string`: 禁止隐式的 toString 调用
+```typescript
+// ❌ 错误
+class User {
+  id: number;
+  name: string;
+}
+const user = new User();
+console.log('User: ' + user);
+
+// ✅ 正确
+class User {
+  id: number;
+  name: string;
+  
+  toString() {
+    return `User(${this.id}): ${this.name}`;
+  }
+}
+```
+
+4. `prefer-nullish-coalescing`: 优先使用空值合并操作符
+```typescript
+// ❌ 错误
+const value = someValue || 'default';
+
+// ✅ 正确
+const value = someValue ?? 'default'; // 只有当 someValue 为 null 或 undefined 时才使用默认值
+```
+
+**代码风格**
+
+1. `consistent-type-imports`: 统一使用 import type 导入类型
+```typescript
+// ❌ 错误
+import { User } from './types';
+
+// ✅ 正确
+import type { User } from './types';
+```
+
+2. `consistent-type-definitions`: 统一使用 interface 定义类型
+```typescript
+// ❌ 错误
+type User = {
+  name: string;
+  age: number;
+};
+
+// ✅ 正确
+interface User {
+  name: string
+  age: number
+}
+```
+
+**命名规范**
+
+1. `naming-convention`: 命名规范示例
+```typescript
+// ❌ 错误
+interface userInterface {}
+type userType = {}
+const USER_name = '';
+
+// ✅ 正确
+interface UserInterface {}
+type UserType = {}
+const userName = '';
+const USER_NAME = '';
+```
+
+**最佳实践**
+
+1. `explicit-member-accessibility`: 明确的成员可访问性
+```typescript
+// ❌ 错误
+class User {
+  name: string;
+  getAge() {}
+}
+
+// ✅ 正确
+class User {
+  public name: string;
+  private age: number;
+  protected getAge() {}
+}
+```
+
+2. `prefer-enum-initializers`: 枚举成员初始值
+```typescript
+// ❌ 错误
+enum Direction {
+  Up,
+  Down
+}
+
+// ✅ 正确
+enum Direction {
+  Up = 'UP',
+  Down = 'DOWN'
+}
+```
+
+3. `prefer-ts-expect-error`: 优先使用 @ts-expect-error 而不是 @ts-ignore
+```typescript
+// ❌ 错误
+// @ts-ignore
+const result = someFunction();
+
+// ✅ 正确
+// @ts-expect-error - 这里解释为什么会有类型错误
+const result = someFunction();
+```
+
+4. `unified-signatures`: 合并具有相同实现的重载声明
+```typescript
+// ❌ 错误
+interface Example {
+  log(message: string): void;
+  log(message: number): void;
+}
+
+// ✅ 正确
+interface Example {
+  log(message: string | number): void;
+}
+```
 
 ### react.js
 
