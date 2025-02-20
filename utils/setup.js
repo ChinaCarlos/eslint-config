@@ -17,6 +17,11 @@ if (process.env.HUSKY_SETUP_IN_PROGRESS) {
 // 设置环境变量标记安装进行中
 process.env.HUSKY_SETUP_IN_PROGRESS = '1'
 
+// 确保在脚本结束时清理环境变量
+process.on('exit', () => {
+  delete process.env.HUSKY_SETUP_IN_PROGRESS
+})
+
 /**
  * 获取项目根目录路径
  * @returns {string} 项目根目录的绝对路径
@@ -35,9 +40,7 @@ function getProjectRoot() {
 }
 
 // 获取项目根目录
-const appPath = getProjectRoot()
-
-console.log('appPath----------------->', appPath)
+const execAppPath = getProjectRoot()
 
 /**
  * 检测项目使用的包管理器
@@ -45,10 +48,10 @@ console.log('appPath----------------->', appPath)
  */
 function detectPackageManager() {
   try {
-    const hasYarnLock = fs.existsSync(path.join(appPath, 'yarn.lock'))
-    const hasPnpmLock = fs.existsSync(path.join(appPath, 'pnpm-lock.yaml'))
+    const hasYarnLock = fs.existsSync(path.join(execAppPath, 'yarn.lock'))
+    const hasPnpmLock = fs.existsSync(path.join(execAppPath, 'pnpm-lock.yaml'))
     const hasPackageLockJson = fs.existsSync(
-      path.join(appPath, 'package-lock.json')
+      path.join(execAppPath, 'package-lock.json')
     )
 
     if (hasPnpmLock) return 'pnpm'
@@ -102,15 +105,15 @@ function findGitRoot(currentPath) {
  * @description
  * 1. 创建并初始化husky配置目录
  * 2. 设置Git pre-commit钩子
- * 3. 创建lint-staged配置文件
+ * 3. 给子项目添加lint-staged配置
  */
 async function setupHusky() {
   try {
     // 检查是否已初始化git仓库
-    const gitRoot = findGitRoot(appPath)
+    const gitRoot = findGitRoot(execAppPath)
     if (!gitRoot) {
       console.log('📦 Initializing git repository...')
-      execSync('git init', {stdio: 'inherit', cwd: appPath})
+      execSync('git init', {stdio: 'inherit', cwd: execAppPath})
       console.log('✅ Git repository initialized successfully!')
     }
 
@@ -134,8 +137,6 @@ async function setupHusky() {
         cwd: gitRoot,
         env: {...process.env, HUSKY_GIT_PARAMS: gitRoot},
       })
-    } else {
-      console.log('✅ .husky directory already exists. Skipping setup.')
     }
 
     // 创建pre-commit钩子脚本，在Git提交前执行lint-staged
@@ -144,28 +145,45 @@ async function setupHusky() {
       const preCommitContent = `#!/usr/bin/env sh
 . "$(dirname -- "$0")/_/husky.sh"
 
-cd ${appPath} && npx lint-staged
+lerna run lint-staged --stream --since
 `
       // 创建钩子脚本文件并设置可执行权限(0o755)
       fs.writeFileSync(preCommitPath, preCommitContent, {mode: 0o755})
-    } else {
-      console.log('✅ pre-commit hook already exists. Skipping setup.')
     }
 
-    // 创建lint-staged配置文件，定义对不同类型文件的处理方式
-    const lintStagedPath = path.join(gitRoot, '.lintstagedrc.json')
-    if (!fs.existsSync(lintStagedPath)) {
-      const lintStagedContent = {
-        // 对JS/TS文件执行eslint检查和自动修复
+    console.log('✅ Husky setup completed successfully!')
+
+    try {
+      console.log(
+        `💡 提示：请在各个子包的package.json中配置lint-staged规则，例如：`
+      )
+      console.log(`{
+    "lint-staged": {
+      "*.{js,jsx,ts,tsx}": ["eslint --fix"]
+    }
+  }`)
+      // 读取当前 appPath 路径下的package.json 内容，自动添加lint-staged配置和命令
+      const packageJsonPath = path.join(execAppPath, 'package.json')
+      const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf-8'))
+
+      // 添加lint-staged配置
+      packageJson['lint-staged'] = {
         '*.{js,jsx,ts,tsx}': ['eslint --fix'],
       }
-      fs.writeFileSync(
-        lintStagedPath,
-        JSON.stringify(lintStagedContent, null, 2)
+      console.log(`✅ 已经对${execAppPath}/package.json添加lint-staged配置`)
+      // 添加lint-staged命令到scripts
+      if (!packageJson.scripts) {
+        packageJson.scripts = {}
+      }
+      packageJson.scripts['lint-staged'] = 'lint-staged'
+      console.log(
+        `✅ 已经对${execAppPath}/package.json添加lint-staged命令到scripts`
       )
-    }
 
-    console.log('✅ Husky and lint-staged setup completed successfully!')
+      fs.writeFileSync(packageJsonPath, JSON.stringify(packageJson, null, 2))
+    } catch (error) {
+      console.error('❌ Error adding lint-staged to package.json:', error)
+    }
   } catch (error) {
     console.error('❌ Error setting up husky and lint-staged:', error)
     process.exit(1)
