@@ -15,7 +15,7 @@ function calculateSum(a: number, b: number) {
 }
 
 // 违反类型断言规则（使用as any）
-const element = document.getElementById('root') as unknown
+const element = document.getElementById('root') as any
 
 // 违反未使用变量规则
 const unusedVar = 'unused'

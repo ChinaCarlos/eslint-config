@@ -1,4 +1,5 @@
 const {appTsConfig, appPath} = require('../utils/paths')
+
 // TypeScript规则配置
 module.exports = {
   settings: {
@@ -10,6 +11,7 @@ module.exports = {
     },
   },
   extends: ['./javascript'],
+  rules: {},
   overrides: [
     {
       files: ['**/*.{ts,tsx}'],
@@ -19,51 +21,18 @@ module.exports = {
         tsconfigRootDir: appPath,
       },
       extends: ['airbnb-typescript', 'plugin:@typescript-eslint/recommended'],
+      plugins: ['@typescript-eslint'],
       rules: {
-        // TypeScript特定规则
-        '@typescript-eslint/explicit-function-return-type': 'off', // 不要求显式返回类型
-        '@typescript-eslint/no-explicit-any': 'off', // 允许使用any类型
-
-        '@typescript-eslint/no-unused-vars': 'error', // 禁止未使用的变量
-        '@typescript-eslint/no-use-before-define': 'error', // 禁止在定义前使用
-        '@typescript-eslint/no-shadow': 'error', // 禁止变量声明覆盖
-        '@typescript-eslint/type-annotation-spacing': 'error', // 类型注解空格
+        '@typescript-eslint/no-shadow': 'error',
+        '@typescript-eslint/type-annotation-spacing': 'error',
         '@typescript-eslint/consistent-type-definitions': [
           'error',
           'interface',
-        ], // 使用interface定义类型
-        '@typescript-eslint/no-empty-interface': 'error', // 禁止空接口
-        '@typescript-eslint/ban-ts-comment': 'warn', // 禁止@ts-ignore等注释
-        '@typescript-eslint/naming-convention': [
-          'error',
-          {
-            selector: 'variable',
-            format: ['camelCase'],
-            leadingUnderscore: 'allow',
-          },
-          {
-            selector: 'function',
-            format: ['camelCase', 'PascalCase'],
-            modifiers: ['exported'],
-          },
-          {
-            selector: 'function',
-            format: ['camelCase'],
-            modifiers: ['global'],
-          },
-          {
-            selector: 'typeLike',
-            format: ['PascalCase'],
-          },
-          {
-            selector: 'enumMember',
-            format: ['UPPER_CASE'],
-          },
         ],
+        '@typescript-eslint/no-empty-interface': 'off',
         '@typescript-eslint/member-delimiter-style': [
           'error',
           {
-            // 接口成员分隔符样式
             multiline: {
               delimiter: 'none',
               requireLast: false,
@@ -74,6 +43,28 @@ module.exports = {
             },
           },
         ],
+        'dot-notation': 'error',
+        '@typescript-eslint/naming-convention': [
+          'warn',
+          {
+            selector: 'variable',
+            format: ['camelCase', 'UPPER_CASE', 'PascalCase'],
+            leadingUnderscore: 'allow',
+          },
+          {
+            selector: 'typeLike',
+            format: ['PascalCase'],
+          },
+        ],
+        '@typescript-eslint/no-unused-vars': 'error',
+        '@typescript-eslint/no-explicit-any': 'error',
+        '@typescript-eslint/explicit-module-boundary-types': 'error',
+        '@typescript-eslint/no-non-null-assertion': 'error',
+        '@typescript-eslint/consistent-type-imports': 'error',
+        '@typescript-eslint/ban-ts-comment': 'warn',
+        '@typescript-eslint/no-inferrable-types': 'warn',
+        '@typescript-eslint/explicit-function-return-type': 'off',
+        '@typescript-eslint/no-use-before-define': 'off',
       },
     },
   ],
