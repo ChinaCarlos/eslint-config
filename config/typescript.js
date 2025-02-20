@@ -83,10 +83,7 @@ module.exports = {
           },
         ],
         // 统一使用 interface 定义类型
-        '@typescript-eslint/consistent-type-definitions': [
-          'error',
-          'interface',
-        ],
+        '@typescript-eslint/consistent-type-definitions': 'off',
         // 接口成员分隔符样式
         '@typescript-eslint/member-delimiter-style': [
           'error',

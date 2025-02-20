@@ -299,7 +299,6 @@ TypeScript 专用的代码规范配置，继承自 javascript.js 的基础配置
 | | `prefer-nullish-coalescing` | 优先使用空值合并操作符 |
 | | `no-invalid-void-type` | 禁止无效的 void 类型使用 |
 | **代码风格** | `consistent-type-imports` | 统一使用 import type 导入类型 |
-| | `consistent-type-definitions` | 统一使用 interface 定义类型 |
 | | `member-delimiter-style` | 接口成员分隔符样式 |
 | | `method-signature-style` | 方法签名风格 |
 
@@ -464,21 +463,6 @@ import { User } from './types';
 import type { User } from './types';
 ```
 
-2. `consistent-type-definitions`: 统一使用 interface 定义类型
-```typescript
-// ❌ 错误
-type User = {
-  name: string;
-  age: number;
-};
-
-// ✅ 正确
-interface User {
-  name: string
-  age: number
-}
-```
-
 **命名规范**
 
 1. `naming-convention`: 命名规范示例
@@ -555,12 +539,167 @@ interface Example {
 
 ### react.js
 
-React 项目的综合配置，包含：
-- 继承 `typescript.js` 配置
-- React Hooks 规则检查
-- JSX 可访问性（a11y）规范
-- React 组件编写规范
-- 事件处理函数命名规范
+React 项目的综合配置，继承自 typescript.js 配置。
+
+#### ERROR 级别规则
+
+| 分类 | 规则 | 说明 |
+|------|------|------|
+| **Hooks 规则** | `react-hooks/rules-of-hooks` | 强制执行 Hooks 的使用规则 |
+| | `react-hooks/exhaustive-deps` | 强制执行 useEffect 的依赖项完整性 |
+| **JSX 语法** | `react/jsx-key` | 强制在迭代器中使用 key 属性 |
+| | `react/jsx-no-duplicate-props` | 禁止在 JSX 中使用重复的属性 |
+| | `react/jsx-no-useless-fragment` | 禁止使用不必要的 Fragment |
+| | `react/jsx-pascal-case` | 强制使用 PascalCase 命名组件 |
+| | `no-nested-ternary` | 禁止使用嵌套的三元表达式 |
+| **组件规范** | `react/no-array-index-key` | 禁止使用数组索引作为 key |
+| | `react/no-direct-mutation-state` | 禁止直接修改 state |
+| | `react/jsx-props-no-spreading` | 禁止使用 props 扩展运算符 |
+| | `react/no-multi-comp` | 禁止在一个文件中定义多个组件 |
+| **生命周期** | `react/no-unsafe` | 禁止使用不安全的生命周期方法 |
+
+#### WARNING 级别规则
+
+| 分类 | 规则 | 说明 |
+|------|------|------|
+| **代码风格** | `react/jsx-handler-names` | 事件处理函数命名规范 |
+| | `react/jsx-filename-extension` | 允许的 JSX 文件扩展名 |
+| | `react/display-name` | 要求组件定义显示名称 |
+| | `react/self-closing-comp` | 强制使用自闭合标签 |
+
+#### 规则示例
+
+**1. Hooks 规则**
+```jsx
+// ❌ 错误示例
+function Component() {
+  if (condition) {
+    // 不能在条件语句中使用 Hooks
+    const [state, setState] = useState(0)
+  }
+
+  useEffect(() => {
+    console.log(data) // 缺少依赖项
+  }, [])
+}
+
+// ✅ 正确示例
+function Component() {
+  const [state, setState] = useState(0)
+
+  useEffect(() => {
+    console.log(data)
+  }, [data]) // 完整的依赖项
+}
+```
+
+**2. JSX 语法规则**
+```jsx
+// ❌ 错误示例
+function component() { // 小写开头
+  return (
+    <>
+      <div>单个子元素不需要 Fragment</div>
+    </>
+  )
+}
+
+// ✅ 正确示例
+function Component() { // PascalCase
+  return <div>直接返回单个元素</div>
+}
+```
+
+**3. 组件规范**
+```jsx
+// ❌ 错误示例
+function Component(props) {
+  return <div {...props} /> // props 透传
+}
+
+const List = () => {
+  const items = ['a', 'b', 'c']
+  return (
+    <div>
+      {items.map((item, index) => (
+        <div key={index}>{item}</div> // 使用索引作为 key
+      ))}
+    </div>
+  )
+}
+
+// ✅ 正确示例
+function Component({ className, style, children }) {
+  return <div className={className} style={style}>{children}</div>
+}
+
+const List = () => {
+  const items = ['a', 'b', 'c']
+  return (
+    <div>
+      {items.map((item) => (
+        <div key={item}>{item}</div> // 使用稳定的值作为 key
+      ))}
+    </div>
+  )
+}
+```
+
+**4. 事件处理函数命名**
+```jsx
+// ❌ 错误示例
+function Component() {
+  const click = () => {}
+  const submit = () => {}
+
+  return (
+    <div>
+      <button click={click}>Click</button>
+      <form submit={submit}>
+        <input change={(e) => {}} />
+      </form>
+    </div>
+  )
+}
+
+// ✅ 正确示例
+function Component() {
+  const handleClick = () => {}
+  const handleSubmit = () => {}
+  const handleChange = (e) => {}
+
+  return (
+    <div>
+      <button onClick={handleClick}>Click</button>
+      <form onSubmit={handleSubmit}>
+        <input onChange={handleChange} />
+      </form>
+    </div>
+  )
+}
+```
+
+**5. 条件渲染**
+```jsx
+// ❌ 错误示例
+function Component() {
+  return (
+    <div>
+      {a ? b ? <C /> : <D /> : <E />} {/* 嵌套三元表达式 */}
+    </div>
+  )
+}
+
+// ✅ 正确示例
+function Component() {
+  const content = b ? <C /> : <D />
+  return (
+    <div>
+      {a ? content : <E />} {/* 拆分复杂条件 */}
+    </div>
+  )
+}
+```
 
 ### prettier.js
 
