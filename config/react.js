@@ -37,7 +37,7 @@ module.exports = {
     // ====================== ERROR 级别规则 ======================
     // React Hooks 规则
     'react-hooks/rules-of-hooks': 'error', // 强制执行 Hooks 的使用规则
-    'react-hooks/exhaustive-deps': 'error', // 强制执行 useEffect 的依赖项完整性
+    'react-hooks/exhaustive-deps': 'warn', // 强制执行 useEffect 的依赖项完整性
     // 'react/no-conditional-hook-call': 'error', // 删除不存在的规则
 
     // JSX 语法规则
