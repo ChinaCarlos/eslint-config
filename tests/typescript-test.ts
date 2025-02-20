@@ -7,8 +7,8 @@ interface userProps {
 }
 
 // 违反类型定义规则（使用any）
-const someValue: unknown = 'test'
-
+const someValue: any = 'test'
+console.log('someValue:', someValue)
 // 违反函数返回类型规则（缺少返回类型注解）
 function calculateSum(a: number, b: number) {
   return a + b
@@ -40,7 +40,7 @@ console.log(myVariable)
 const myVariable = 42
 
 // 违反禁止使用@ts-ignore规则
-// @ts-ignore
+// @ts-expect-error
 const invalidCode: string = 42
 
 // 违反成员分隔符样式规则

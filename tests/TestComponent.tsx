@@ -40,10 +40,10 @@ function testComponent({name, age}: props) {
   type Status = string | number | boolean
 
   // 违反类型断言规则
-  const value = state as any
+  const value = state
 
   // 违反可选链使用规则
-  const data = state && state.data && state.data.value
+  const data = state?.data?.value
 
   // 违反jsx-a11y规则和事件处理规则
   return (
